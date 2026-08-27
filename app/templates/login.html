@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Sign in · Home Lab{% endblock %}
+{% block content %}
+  <section class="login-panel">
+    <h1>Sign in</h1>
+    <p>The dashboard and service-management API require an authenticated session.</p>
+
+    {% if google_enabled %}
+      <a class="button" href="{{ url_for('auth.google_login', next=next_url) }}">Continue with Google</a>
+    {% endif %}
+
+    {% if development_login_enabled %}
+      <form method="post" action="{{ url_for('auth.local_login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="{{ next_url }}">
+        <button class="button button-secondary" type="submit">Continue with local development account</button>
+      </form>
+      <p class="security-note">Development-only sign-in is enabled. It is rejected automatically in production.</p>
+    {% endif %}
+
+    {% if not google_enabled and not development_login_enabled %}
+      <p>Google OAuth credentials are not configured. Add them to <code>.env</code> to sign in.</p>
+    {% endif %}
+  </section>
+{% endblock %}

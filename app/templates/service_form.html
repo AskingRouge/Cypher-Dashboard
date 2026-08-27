@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }} · Home Lab{% endblock %}
+{% block content %}
+  <div class="page-heading">
+    <div>
+      <a class="back-link" href="{{ url_for('dashboard.index') }}">← Dashboard</a>
+      <h1>{{ page_title }}</h1>
+    </div>
+  </div>
+
+  <form method="post" class="service-form" novalidate>
+    {{ form.hidden_tag() }}
+
+    {% for field in [form.name, form.check_type, form.target, form.interval_seconds, form.expected_status_code] %}
+      <div class="form-field{% if field.errors %} has-error{% endif %}"{% if field.name == "expected_status_code" %} data-http-only{% endif %}>
+        {{ field.label }}
+        {{ field }}
+        {% if field.name == "target" %}
+          <small>HTTP: https://host/path · TCP: host:port · Ping: hostname or IP</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <span class="field-error">{{ error }}</span>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <div class="form-actions">
+      {{ form.submit(class_="button") }}
+      <a href="{{ url_for('dashboard.index') }}">Cancel</a>
+    </div>
+  </form>
+  <script src="{{ url_for('static', filename='js/service_form.js') }}" defer></script>
+{% endblock %}

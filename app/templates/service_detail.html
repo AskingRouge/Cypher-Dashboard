@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} · Home Lab{% endblock %}
+{% block content %}
+  <div data-service-detail data-service-id="{{ service.id }}">
+  <a class="back-link" href="{{ url_for('dashboard.index') }}">← Dashboard</a>
+  <div class="page-heading">
+    <div>
+      <span class="status status-{{ summary.status }}">{{ summary.status|capitalize }}</span>
+      <h1>{{ service.name }}</h1>
+      <p class="target">{{ service.target }}</p>
+    </div>
+    <a class="button button-secondary" href="{{ url_for('dashboard.edit_service', service_id=service.id) }}">Edit</a>
+  </div>
+
+  <dl class="details">
+    <div><dt>Check type</dt><dd>{{ service.check_type.value }}</dd></div>
+    <div><dt>Interval</dt><dd>{{ service.interval_seconds }} seconds</dd></div>
+    <div><dt>Expected status</dt><dd>{{ service.expected_status_code or "Not applicable" }}</dd></div>
+    <div>
+      <dt>Response time</dt>
+      <dd>{% if summary.latest and summary.latest.response_time_ms is not none %}{{ "%.1f"|format(summary.latest.response_time_ms) }} ms{% else %}—{% endif %}</dd>
+    </div>
+    <div><dt>Last checked</dt><dd>{% if summary.latest %}{{ summary.latest.timestamp.isoformat() }}{% else %}Never{% endif %}</dd></div>
+    {% for range_name in ["24h", "7d", "30d"] %}
+      <div>
+        <dt>{{ range_name }} uptime</dt>
+        <dd>{% if summary.uptime[range_name] is not none %}{{ "%.2f"|format(summary.uptime[range_name]) }}%{% else %}N/A{% endif %}</dd>
+      </div>
+    {% endfor %}
+  </dl>
+
+  <section class="history-panel">
+    <div class="section-heading">
+      <div>
+        <h2>Response-time history</h2>
+        <p>Failed checks appear as red points or gaps when no latency is available.</p>
+      </div>
+      <div class="range-controls" aria-label="History range">
+        {% for range_name in ["24h", "7d", "30d"] %}
+          <button class="range-button{% if range_name == '24h' %} active{% endif %}" type="button" data-history-range="{{ range_name }}" aria-pressed="{{ 'true' if range_name == '24h' else 'false' }}">{{ range_name }}</button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="response-time-chart" aria-label="Response-time history chart"></canvas>
+    </div>
+    <p data-history-state aria-live="polite">Loading history…</p>
+  </section>
+
+  <section class="incident-panel">
+    <h2>Incident history</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Started</th><th>Resolved</th><th>Duration</th><th>State</th></tr>
+        </thead>
+        <tbody data-incident-rows>
+          {% for incident in incidents %}
+            <tr>
+              <td>{{ incident.started_at.isoformat() }}</td>
+              <td>{{ incident.resolved_at.isoformat() if incident.resolved_at else "—" }}</td>
+              <td>{{ incident.duration_seconds if incident.duration_seconds is not none else "Ongoing" }}</td>
+              <td>{{ "Resolved" if incident.resolved_at else "Ongoing" }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No incidents recorded.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p data-incident-state aria-live="polite"></p>
+  </section>
+
+  <form method="post" action="{{ url_for('dashboard.delete_service', service_id=service.id) }}" onsubmit="return confirm('Delete this service and all of its history?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="button button-danger" type="submit">Delete service</button>
+  </form>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js" defer></script>
+  <script src="{{ url_for('static', filename='js/service_detail.js') }}" defer></script>
+{% endblock %}

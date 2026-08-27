@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Home Lab{% endblock %}
+{% block content %}
+  <div class="page-heading">
+    <div>
+      <h1>Home Lab Status</h1>
+      <p>Live health, latency, and sample-based uptime for your services.</p>
+    </div>
+    <a class="button" href="{{ url_for('dashboard.create_service') }}">Add service</a>
+  </div>
+
+  {% if summaries %}
+    <div class="service-grid">
+      {% for summary in summaries %}
+        {% set service = summary.service %}
+        <article class="service-card" data-service-id="{{ service.id }}">
+          <span class="status status-{{ summary.status }}" data-field="status">{{ summary.status|capitalize }}</span>
+          <h2><a href="{{ url_for('dashboard.service_detail', service_id=service.id) }}">{{ service.name }}</a></h2>
+          <p class="target">{{ service.target }}</p>
+          <dl>
+            <div><dt>Type</dt><dd>{{ service.check_type.value }}</dd></div>
+            <div><dt>Interval</dt><dd>{{ service.interval_seconds }} seconds</dd></div>
+            <div>
+              <dt>Response</dt>
+              <dd data-field="response-time">{% if summary.latest and summary.latest.response_time_ms is not none %}{{ "%.1f"|format(summary.latest.response_time_ms) }} ms{% else %}—{% endif %}</dd>
+            </div>
+            {% for range_name in ["24h", "7d", "30d"] %}
+              <div>
+                <dt>{{ range_name }} uptime</dt>
+                <dd data-uptime-range="{{ range_name }}">{% if summary.uptime[range_name] is not none %}{{ "%.2f"|format(summary.uptime[range_name]) }}%{% else %}N/A{% endif %}</dd>
+              </div>
+            {% endfor %}
+            <div>
+              <dt>Last checked</dt>
+              <dd data-field="last-checked">{% if summary.latest %}{{ summary.latest.timestamp.isoformat() }}{% else %}Never{% endif %}</dd>
+            </div>
+          </dl>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="empty-state">
+      <h2>No services yet</h2>
+      <p>Add your first HTTP, ping, or TCP monitor to get started.</p>
+      <a class="button" href="{{ url_for('dashboard.create_service') }}">Add your first service</a>
+    </section>
+  {% endif %}
+  <p class="refresh-state" data-refresh-state aria-live="polite"></p>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}" defer></script>
+{% endblock %}
