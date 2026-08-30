@@ -1,4 +1,4 @@
-# Home Lab Status Dashboard
+# Cypher Dashboard
 
 A self-hosted Flask monitoring dashboard for HTTP, TCP, and ICMP services. It
 runs each monitor on its own interval, stores append-only history in PostgreSQL,
