@@ -345,12 +345,3 @@ and `DATABASE_URL` uses `postgresql+psycopg://`.
 
 The browser needs access to the pinned Chart.js CDN. The JSON history endpoint
 and incident table remain available even if the CDN is blocked.
-
-## Interview summary
-
-This project demonstrates a small but complete monitoring pipeline: scheduled
-network I/O is isolated from persistence, failures are modeled as data, state
-transitions are transactional, and indexed history powers both aggregate and
-time-series views. The important operational tradeoff is the embedded scheduler:
-it minimizes infrastructure for a home lab but constrains deployment to one
-worker until scheduling is split into a dedicated process.
